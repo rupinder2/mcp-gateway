@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-gateway"
+version = "0.1.0"
+description = "MCP Orchestration Gateway - Aggregates and searches tools from multiple MCP servers"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.14.0",
+    "mcp>=1.0.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "redis>=5.0.0",
+    "whoosh>=2.7.4",
+    "httpx>=0.26.0",
+    "tenacity>=8.2.0",
+    "structlog>=24.1.0",
+    "cachetools>=5.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "respx>=0.20.0",
+]
+
+[project.scripts]
+mcp-gateway = "mcp_gateway.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_gateway"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"

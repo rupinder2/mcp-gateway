@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "servers": [
+    {
+      "name": "sample-http",
+      "url": "http://127.0.0.1:8000/mcp",
+      "transport": "http",
+      "auth_type": "static",
+      "auth_headers": {
+        "Authorization": "Bearer sample-server-key"
+      },
+      "auto_discover": true,
+      "enabled": true,
+      "expose_tools": false
+    },
+    {
+      "name": "sample-sse",
+      "url": "http://127.0.0.1:8001/sse",
+      "transport": "sse",
+      "auto_discover": true,
+      "enabled": true,
+      "expose_tools": false
+    },
+    {
+      "name": "sample-stdio",
+      "url": "stdio_server/server.py",
+      "transport": "stdio",
+      "command": "uv",
+      "args": ["run", "python", "stdio_server/server.py"],
+      "auto_discover": true,
+      "enabled": true,
+      "expose_tools": false
+    }
+  ]
+}
