@@ -124,9 +124,6 @@ class GatewayConfig(BaseModel):
     connection_timeout: float = 30.0
     max_retries: int = 3
     
-    search_backend: Literal["regex", "bm25"] = "regex"
-    search_index_path: Optional[str] = "./search_index"
-    
     http_host: str = "0.0.0.0"
     http_port: int = 8000
     

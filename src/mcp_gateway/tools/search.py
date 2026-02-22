@@ -10,14 +10,14 @@ all registered MCP servers. It supports two search algorithms:
    Uses term frequency, inverse document frequency, and field length normalization.
 
 Usage:
-    search = ToolSearchService(index_path="./search_index")
+    search = ToolSearchService()
     search.index_tools("my-server", [{"name": "my_tool", ...}])
     
-    # Regex search
-    results = search.search_regex("weather|forecast", limit=5)
+    # Unified search (BM25 by default)
+    results = search.search("get weather information", limit=5)
     
-    # BM25 search
-    results = search.search_bm25("get weather information", limit=5)
+    # Regex search
+    results = search.search("weather|forecast", use_regex=True, limit=5)
 
 The service maintains an in-memory index of all tools and supports:
 - Indexing tools from multiple servers with namespaced names
@@ -58,8 +58,7 @@ STOP_WORDS: Set[str] = {
 class ToolSearchService:
     """Service for searching tools across registered servers."""
     
-    def __init__(self, index_path: Optional[str] = None):
-        self._index_path = index_path
+    def __init__(self):
         self._tools: Dict[str, Dict[str, Any]] = {}  # namespaced_name -> tool data
         self._bm25_index = None
         self._whoosh_available = False

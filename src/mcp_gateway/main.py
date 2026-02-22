@@ -48,8 +48,6 @@ def create_config_from_env() -> GatewayConfig:
         default_connection_mode=os.getenv("MCP_GATEWAY_DEFAULT_CONNECTION_MODE", "stateless"),
         connection_timeout=float(os.getenv("MCP_GATEWAY_CONNECTION_TIMEOUT", "30.0")),
         max_retries=int(os.getenv("MCP_GATEWAY_MAX_RETRIES", "3")),
-        search_backend=os.getenv("MCP_GATEWAY_SEARCH_BACKEND", "regex"),
-        search_index_path=os.getenv("MCP_GATEWAY_SEARCH_INDEX_PATH", "./search_index"),
         http_host=os.getenv("GATEWAY_HTTP_HOST", "0.0.0.0"),
         http_port=int(os.getenv("GATEWAY_PORT", "8080")),
         mcp_transport=os.getenv("GATEWAY_TRANSPORT", "stdio"),
@@ -70,7 +68,6 @@ def main() -> None:
     
     logger.info("Starting MCP Gateway...")
     logger.info(f"Storage backend: {config.storage_backend}")
-    logger.info(f"Search backend: {config.search_backend}")
     
     # Create storage backend
     storage = create_storage(config)
@@ -80,7 +77,7 @@ def main() -> None:
         registry = ServerRegistry(storage)
         
         # Create tool search service
-        tool_search = ToolSearchService(config.search_index_path)
+        tool_search = ToolSearchService()
         
         # Create MCP server
         server = MCPGatewayServer(storage, registry, tool_search, config.gateway_auth_mode, config.mcp_transport)

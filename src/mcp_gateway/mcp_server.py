@@ -365,7 +365,7 @@ class MCPGatewayServer:
             # Get server info
             server_info = await self._registry.get(server_name)
             if not server_info:
-                raise ValueError(f"Server '{server_name}' not found. Use list_servers to see available servers.")
+                raise ValueError(f"Server '{server_name}' not found. Add it to server_config.json to register.")
             
             # Determine auth headers to use
             auth_headers = None

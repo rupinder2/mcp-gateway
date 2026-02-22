@@ -131,7 +131,6 @@ def test_gateway_config_defaults():
     assert config.default_connection_mode == "stateless"
     assert config.connection_timeout == 30.0
     assert config.max_retries == 3
-    assert config.search_backend == "regex"
     assert config.http_host == "0.0.0.0"
     assert config.http_port == 8000
     assert config.mcp_transport == "stdio"
