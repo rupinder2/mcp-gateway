@@ -11,12 +11,11 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from mcp.client.streamable_http import streamable_http_client
 from mcp.client.stdio import stdio_client, StdioServerParameters
-from mcp.client.sse import sse_client
 from mcp import ClientSession
 
 
 async def test_http_server():
-    """Test HTTP (streamable-http) server."""
+    """Test HTTP server."""
     print("\n[1] Testing HTTP server (http://127.0.0.1:8000/mcp)")
     headers = {"Authorization": "Bearer sample-server-key"}
     
@@ -37,33 +36,9 @@ async def test_http_server():
         return False
 
 
-async def test_sse_server():
-    """Test SSE server."""
-    print("\n[2] Testing SSE server (http://127.0.0.1:8001/sse)")
-    
-    try:
-        async with asyncio.timeout(30):
-            async with sse_client("http://127.0.0.1:8001/sse") as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    result = await session.list_tools()
-                    print(f"  Found {len(result.tools)} tools")
-                    
-                    # Test tool call if available
-                    if result.tools:
-                        tool_name = result.tools[0].name
-                        call_result = await session.call_tool(tool_name, {"text": "hello"} if "echo" in tool_name.lower() else {})
-                        print(f"  Called {tool_name}: success={not call_result.isError}")
-                    
-                    return True
-    except Exception as e:
-        print(f"  ✗ Error: {type(e).__name__}: {e}")
-        return False
-
-
 async def test_stdio_server():
     """Test STDIO server."""
-    print("\n[3] Testing STDIO server")
+    print("\n[2] Testing STDIO server")
     
     try:
         stdio_params = StdioServerParameters(
@@ -90,8 +65,8 @@ async def test_stdio_server():
 
 
 async def test_router():
-    """Test the gateway's ToolRouter with all transports."""
-    print("\n[4] Testing Gateway ToolRouter")
+    """Test the gateway's ToolRouter with HTTP and stdio transports."""
+    print("\n[3] Testing Gateway ToolRouter")
     
     from mcp_gateway.tools.router import ToolRouter
     
@@ -111,20 +86,6 @@ async def test_router():
     success = result.get("success", False)
     print(f"    add(10, 20): {'✓' if success else '✗'}")
     results.append(("http", success))
-    
-    # Test SSE transport
-    print("  SSE transport:")
-    router = ToolRouter(timeout=30.0, gateway_auth_mode="auto", gateway_transport="http")
-    result = await router.call_tool(
-        server_name="sample-sse",
-        server_url="http://127.0.0.1:8001/sse",
-        tool_name="echo",
-        arguments={"text": "hello"},
-        transport="sse",
-    )
-    success = result.get("success", False)
-    print(f"    echo('hello'): {'✓' if success else '✗'}")
-    results.append(("sse", success))
     
     # Test STDIO transport
     print("  STDIO transport:")
@@ -148,7 +109,7 @@ async def test_router():
 
 async def test_gateway_transports():
     """Test gateway with different transport modes."""
-    print("\n[5] Testing Gateway Transport Combinations")
+    print("\n[4] Testing Gateway Transport Combinations")
     
     from mcp_gateway.storage.memory import InMemoryStorage
     from mcp_gateway.server.registry import ServerRegistry
@@ -157,9 +118,8 @@ async def test_gateway_transports():
     from mcp_gateway.models import ServerRegistration, AuthConfig
     
     test_cases = [
-        ("stdio", "stdio", "http://127.0.0.1:8001/sse", "uv", ["run", "python", "stdio_server/server.py"]),
+        ("stdio", "stdio", "stdio_server/server.py", "uv", ["run", "python", "stdio_server/server.py"]),
         ("http", "http", "http://127.0.0.1:8000/mcp", None, None),
-        ("sse", "sse", "http://127.0.0.1:8001/sse", None, None),
     ]
     
     results = []
@@ -190,19 +150,10 @@ async def test_gateway_transports():
             )
             auth_headers = {"Authorization": "Bearer sample-server-key"}
             tool_args = {"a": 1, "b": 2}
-        elif downstream_name == "sse":
-            reg = ServerRegistration(
-                name=downstream_name,
-                url=downstream_url,
-                transport=downstream_name,
-                auto_discover=False,
-            )
-            auth_headers = None
-            tool_args = {"text": "test"}
         else:
             reg = ServerRegistration(
                 name=downstream_name,
-                url="stdio_server/server.py",
+                url=downstream_url,
                 transport="stdio",
                 command=cmd,
                 args=args,
@@ -217,7 +168,7 @@ async def test_gateway_transports():
             # Discover tools
             tools = await server._discover_tools(
                 name=downstream_name,
-                url=downstream_url if downstream_name != "stdio" else "stdio_server/server.py",
+                url=downstream_url,
                 transport=downstream_name,
                 command=cmd,
                 args=args,
@@ -253,7 +204,7 @@ async def test_gateway_transports():
                 # Call tool via router
                 result = await server._tool_router.call_tool(
                     server_name=downstream_name,
-                    server_url=downstream_url if downstream_name != "stdio" else "stdio_server/server.py",
+                    server_url=downstream_url,
                     tool_name=first_tool,
                     arguments=tool_args,
                     transport=downstream_name,
@@ -278,7 +229,7 @@ async def test_gateway_transports():
 
 async def test_call_remote_tool():
     """Test the call_remote_tool gateway tool."""
-    print("\n[6] Testing call_remote_tool Gateway Tool")
+    print("\n[5] Testing call_remote_tool Gateway Tool")
     
     from mcp_gateway.storage.memory import InMemoryStorage
     from mcp_gateway.server.registry import ServerRegistry
@@ -354,7 +305,6 @@ async def main():
     
     # Test direct connections
     http_ok = await test_http_server()
-    sse_ok = await test_sse_server()
     stdio_ok = await test_stdio_server()
     
     # Test router
@@ -373,7 +323,6 @@ async def main():
     
     print("\n[Direct Server Connections]")
     print(f"  HTTP (8000/mcp):    {'✓ PASS' if http_ok else '✗ FAIL'}")
-    print(f"  SSE  (8001/sse):   {'✓ PASS' if sse_ok else '✗ FAIL'}")
     print(f"  STDIO (subprocess): {'✓ PASS' if stdio_ok else '✗ FAIL'}")
     
     print("\n[ToolRouter Direct]")
@@ -389,7 +338,7 @@ async def main():
         print(f"  {gt}: {'✓ PASS' if success else '✗ FAIL'}")
     
     # Calculate totals
-    all_tests = [http_ok, sse_ok, stdio_ok]
+    all_tests = [http_ok, stdio_ok]
     all_tests.extend([s for _, s in router_results])
     all_tests.extend([s for _, _, s in gateway_results])
     all_tests.extend([s for _, s in call_results])

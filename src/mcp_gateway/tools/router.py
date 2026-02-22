@@ -27,7 +27,6 @@ from typing import Optional, Dict, Any, List, Literal
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from mcp.client.stdio import stdio_client, StdioServerParameters
-from mcp.client.sse import sse_client
 import httpx
 import asyncio
 from cachetools import TTLCache
@@ -48,7 +47,7 @@ class ToolRouter:
         timeout: float = 30.0,
         cache_ttl: int = 300,
         gateway_auth_mode: Literal["auto", "static", "forward"] = "auto",
-        gateway_transport: Literal["stdio", "sse", "http", "streamable-http"] = "stdio",
+        gateway_transport: Literal["stdio", "http"] = "stdio",
     ):
         """Initialize the tool router.
         
@@ -56,7 +55,7 @@ class ToolRouter:
             timeout: Default timeout for tool calls in seconds
             cache_ttl: Time-to-live for cached schemas in seconds (default: 5 minutes)
             gateway_auth_mode: Auth mode for the gateway (auto, static, forward)
-            gateway_transport: Transport mode for the gateway (stdio, sse, http, streamable-http)
+            gateway_transport: Transport mode for the gateway (stdio or http)
         """
         self._timeout = timeout
         self._gateway_auth_mode = gateway_auth_mode
@@ -113,8 +112,8 @@ class ToolRouter:
             return True
         else:  # "auto"
             # If gateway is running in HTTP mode, forward auth
-            # If gateway is running in STDIO/SSE mode, use static auth
-            return self._gateway_transport in ("http", "streamable-http")
+            # If gateway is running in STDIO mode, use static auth
+            return self._gateway_transport == "http"
     
     def _get_effective_auth_headers(
         self,
@@ -149,7 +148,7 @@ class ToolRouter:
         server_url: str,
         tool_name: str,
         arguments: Dict[str, Any],
-        transport: Literal["http", "stdio", "sse"] = "http",
+        transport: Literal["http", "stdio"] = "http",
         command: Optional[str] = None,
         args: Optional[List[str]] = None,
         env: Optional[Dict[str, str]] = None,
@@ -162,7 +161,7 @@ class ToolRouter:
             server_url: URL or command of the downstream server
             tool_name: Name of the tool to call
             arguments: Tool arguments
-            transport: Transport type ('http', 'stdio', or 'sse')
+            transport: Transport type ('http' or 'stdio')
             command: Command for stdio transport
             args: Arguments for stdio transport
             env: Environment variables for stdio transport
@@ -196,14 +195,6 @@ class ToolRouter:
                 arguments=arguments,
                 args=args,
                 env=env,
-            )
-        elif transport == "sse":
-            return await self._call_tool_sse(
-                server_name=server_name,
-                server_url=server_url,
-                tool_name=tool_name,
-                arguments=arguments,
-                auth_headers=effective_auth,
             )
         else:
             raise ToolCallError(f"Unsupported transport '{transport}' for server '{server_name}'")
@@ -269,24 +260,6 @@ class ToolRouter:
         
         async with asyncio.timeout(self._timeout):
             async with stdio_client(stdio_params) as (read, write):
-                async with ClientSession(read, write) as session:
-                    return await self._execute_tool_call(session, tool_name, arguments)
-    
-    async def _call_tool_sse(
-        self,
-        server_name: str,
-        server_url: str,
-        tool_name: str,
-        arguments: Dict[str, Any],
-        auth_headers: Optional[Dict[str, str]] = None,
-    ) -> Any:
-        """Call a tool using SSE transport."""
-        logger.info(f"Calling tool '{tool_name}' on server '{server_name}' via SSE at {server_url}")
-        
-        headers = auth_headers or {}
-        
-        async with asyncio.timeout(self._timeout):
-            async with sse_client(server_url, headers=headers) as (read, write):
                 async with ClientSession(read, write) as session:
                     return await self._execute_tool_call(session, tool_name, arguments)
     

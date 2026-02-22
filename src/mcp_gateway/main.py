@@ -110,7 +110,7 @@ def main() -> None:
                 logger.debug(f"Server config file not found: {config_path}, skipping")
         
         # Run the server (FastMCP handles its own event loop)
-        if config.mcp_transport in ("http", "sse", "streamable-http"):
+        if config.mcp_transport == "http":
             server.run(transport=config.mcp_transport, port=config.http_port, host=config.http_host)
         else:
             server.run(transport=config.mcp_transport)

@@ -6,8 +6,8 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
-TransportType = Literal["http", "stdio", "sse"]
-TransportMode = Literal["stdio", "sse", "http", "streamable-http"]
+TransportType = Literal["http", "stdio"]
+TransportMode = Literal["stdio", "http"]
 AuthType = Literal["none", "static", "forward"]
 AuthMode = Literal["auto", "static", "forward"]
 ConnectionMode = Literal["stateful", "stateless"]

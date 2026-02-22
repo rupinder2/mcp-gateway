@@ -8,7 +8,7 @@ A central hub that connects to multiple downstream MCP servers, aggregates their
 - **Tool Namespacing**: Automatic `server_name__tool_name` format
 - **Tool Search**: Unified BM25/regex search with deferred loading support
 - **Flexible Authentication**: Static saved headers or token forwarding
-- **Multiple Transports**: stdio, HTTP, streamable-http, or SSE
+- **Multiple Transports**: stdio or HTTP
 - **Tool Definition Caching**: Cached definitions, raw result passthrough
 - **Storage Backends**: In-memory (development) or Redis (production)
 
@@ -38,19 +38,13 @@ mcp-gateway
 python -m mcp_gateway.main
 ```
 
-**HTTP/Streamable-HTTP Transport:**
+**HTTP Transport:**
 
 ```bash
-GATEWAY_TRANSPORT=streamable-http GATEWAY_PORT=8080 python -m mcp_gateway.main
+GATEWAY_TRANSPORT=http GATEWAY_PORT=8080 python -m mcp_gateway.main
 ```
 
 This starts the server on `http://localhost:8080/mcp` with CORS enabled.
-
-**SSE Transport (legacy):**
-
-```bash
-GATEWAY_TRANSPORT=sse GATEWAY_PORT=8080 python -m mcp_gateway.main
-```
 
 ### Configuring Servers
 
@@ -137,9 +131,9 @@ results = await mcp_client.call_tool("tool_search", {
 | `MCP_GATEWAY_DEFAULT_CONNECTION_MODE` | `stateless` | Default connection mode |
 | `MCP_GATEWAY_CONNECTION_TIMEOUT` | `30.0` | Connection timeout in seconds |
 | `MCP_GATEWAY_MAX_RETRIES` | `3` | Maximum retry attempts |
-| `GATEWAY_TRANSPORT` | `stdio` | MCP transport (`stdio`, `http`, `streamable-http`, or `sse`) |
-| `GATEWAY_PORT` | `8080` | Port for HTTP/SSE transport |
-| `GATEWAY_HOST` | `0.0.0.0` | Host for HTTP/SSE transport |
+| `GATEWAY_TRANSPORT` | `stdio` | MCP transport (`stdio` or `http`) |
+| `GATEWAY_PORT` | `8080` | Port for HTTP transport |
+| `GATEWAY_HOST` | `0.0.0.0` | Host for HTTP transport |
 | `GATEWAY_LOG_LEVEL` | `INFO` | Logging level |
 | `SERVER_CONFIG_PATH` | `server_config.json` | Path to server configuration file |
 

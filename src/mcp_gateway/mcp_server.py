@@ -8,7 +8,6 @@ from starlette.middleware.cors import CORSMiddleware
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from mcp.client.stdio import stdio_client, StdioServerParameters
-from mcp.client.sse import sse_client
 import httpx
 import asyncio
 
@@ -35,7 +34,7 @@ class MCPGatewayServer:
         server_registry: ServerRegistry,
         tool_search: ToolSearchService,
         gateway_auth_mode: Literal["auto", "static", "forward"] = "auto",
-        gateway_transport: Literal["stdio", "sse", "http", "streamable-http"] = "stdio",
+        gateway_transport: Literal["stdio", "http"] = "stdio",
     ):
         """Initialize the MCP Gateway server.
         
@@ -44,7 +43,7 @@ class MCPGatewayServer:
             server_registry: Server registry for managing MCP servers
             tool_search: Tool search service for regex and BM25 search
             gateway_auth_mode: Auth mode for the gateway (auto, static, forward)
-            gateway_transport: Transport mode for the gateway (stdio, sse, http, streamable-http)
+            gateway_transport: Transport mode for the gateway (stdio or http)
         """
         self._storage = storage
         self._registry = server_registry
@@ -66,7 +65,7 @@ class MCPGatewayServer:
         self,
         name: str,
         url: str,
-        transport: Literal["http", "stdio", "sse"] = "http",
+        transport: Literal["http", "stdio"] = "http",
         command: Optional[str] = None,
         args: Optional[List[str]] = None,
         env: Optional[Dict[str, str]] = None,
@@ -77,7 +76,7 @@ class MCPGatewayServer:
         Args:
             name: Server name
             url: Server URL (HTTP endpoint) or command for stdio
-            transport: Transport type ('http', 'stdio', or 'sse')
+            transport: Transport type ('http' or 'stdio')
             command: Command to run for stdio transport
             args: Arguments for stdio transport command
             env: Environment variables for stdio transport
@@ -92,8 +91,6 @@ class MCPGatewayServer:
             elif transport == "stdio":
                 stdio_command = command or url
                 return await self._discover_tools_stdio(name, stdio_command, args, env)
-            elif transport == "sse":
-                return await self._discover_tools_sse(name, url, auth_headers)
             else:
                 logger.warning(f"Unsupported transport '{transport}' for server '{name}'")
                 return []
@@ -135,7 +132,6 @@ class MCPGatewayServer:
         url: str,
         http_client: Optional[httpx.AsyncClient] = None,
         stdio_params: Optional[StdioServerParameters] = None,
-        sse_headers: Optional[Dict[str, str]] = None,
     ) -> List[Dict[str, Any]]:
         """Create session and discover tools within the same context.
         
@@ -150,12 +146,6 @@ class MCPGatewayServer:
         elif transport == "stdio":
             assert stdio_params is not None
             async with stdio_client(stdio_params) as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    response = await session.list_tools()
-                    return self._extract_tools_from_response(response, server_name)
-        elif transport == "sse":
-            async with sse_client(url, headers=sse_headers) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     response = await session.list_tools()
@@ -213,32 +203,6 @@ class MCPGatewayServer:
                     server_name=name,
                     url="",
                     stdio_params=stdio_params,
-                )
-        except asyncio.TimeoutError:
-            logger.error(f"Timeout discovering tools from '{name}'")
-            raise ConnectionError(f"Connection to '{name}' timed out after 30 seconds")
-        except Exception as e:
-            logger.error(f"Error discovering tools from '{name}': {e}")
-            raise
-    
-    async def _discover_tools_sse(
-        self,
-        name: str,
-        url: str,
-        auth_headers: Optional[Dict[str, str]] = None,
-    ) -> List[Dict[str, Any]]:
-        """Discover tools from a downstream MCP server using SSE transport."""
-        logger.info(f"Connecting to SSE MCP server: {url}")
-        
-        headers = auth_headers or {}
-        
-        try:
-            async with asyncio.timeout(30):
-                return await self._discover_tools_with_session(
-                    transport="sse",
-                    server_name=name,
-                    url=url,
-                    sse_headers=headers,
                 )
         except asyncio.TimeoutError:
             logger.error(f"Timeout discovering tools from '{name}'")
@@ -571,15 +535,15 @@ Input Schema:
         """Get the FastMCP instance."""
         return self._mcp
     
-    def run(self, transport: Literal["stdio", "sse", "http", "streamable-http"] = "stdio", port: Optional[int] = None, host: str = "0.0.0.0") -> None:
+    def run(self, transport: Literal["stdio", "http"] = "stdio", port: Optional[int] = None, host: str = "0.0.0.0") -> None:
         """Run the MCP server.
         
         Args:
-            transport: Transport type ('stdio', 'sse', 'http', or 'streamable-http')
-            port: Port for HTTP/SSE transport
-            host: Host for HTTP/SSE transport
+            transport: Transport type ('stdio' or 'http')
+            port: Port for HTTP transport
+            host: Host for HTTP transport
         """
-        if transport in ("http", "streamable-http") and port:
+        if transport == "http" and port:
             # Use HTTP transport with CORS middleware for browser-based clients
             middleware = [
                 Middleware(
@@ -598,10 +562,6 @@ Input Schema:
             http_app = self._mcp.http_app(middleware=middleware)
             import uvicorn
             uvicorn.run(http_app, host=host, port=port, log_level="info")
-        elif transport == "sse" and port:
-            self._mcp.run(transport="sse", port=port)
-        elif transport == "streamable-http" and port:
-            self._mcp.run(transport="streamable-http", host=host, port=port)
         else:
             self._mcp.run(transport="stdio")
 
