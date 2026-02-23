@@ -1,6 +1,13 @@
 # MCP Orchestration Gateway
 
+[![PyPI Version](https://img.shields.io/pypi/v/mcp-orchestration-gateway.svg)](https://pypi.org/project/mcp-orchestration-gateway/)
+[![Python Version](https://img.shields.io/pypi/pyversions/mcp-orchestration-gateway)](https://pypi.org/project/mcp-orchestration-gateway/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/roop/mcp-gateway/actions/workflows/test.yml/badge.svg)](https://github.com/roop/mcp-gateway/actions)
+
 A central hub that connects to multiple downstream MCP servers, aggregates their tools, and provides unified access with powerful tool search capabilities.
+
+> Built around **deferred tool loading** — search across all your servers without blowing Claude's context window.
 
 ## Features
 
@@ -32,7 +39,7 @@ Then run the server:
 
 ```bash
 # Run as stdio MCP server (for Claude Desktop, Cursor, etc.)
-mcp-gateway
+mcp-orchestration-gateway
 
 # Or run with Python directly
 python -m mcp_gateway.main
@@ -144,9 +151,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```json
 {
   "mcpServers": {
-    "mcp-gateway": {
-      "command": "python",
-      "args": ["-m", "mcp_gateway"],
+    "mcp-orchestration-gateway": {
+      "command": "mcp-orchestration-gateway",
       "env": {
         "STORAGE_BACKEND": "memory",
         "GATEWAY_LOG_LEVEL": "INFO"
