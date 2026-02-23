@@ -6,14 +6,14 @@ Thank you for your interest in contributing! This project welcomes contributions
 
 ```bash
 # Clone the repository
-git clone https://github.com/roop/mcp-gateway.git
+git clone https://github.com/rupinder2/mcp-gateway.git
 cd mcp-gateway
 
 # Install dependencies with uv
 uv sync --dev
 
 # Run tests
-pytest
+uv run pytest
 ```
 
 ## Development Setup
@@ -85,4 +85,4 @@ mcp dev src/mcp_gateway/main.py
 
 ## Questions?
 
-Open a discussion at https://github.com/roop/mcp-gateway/discussions
+Open a discussion at https://github.com/rupinder2/mcp-gateway/discussions
