@@ -23,7 +23,7 @@ jobs:
         run: uv sync --locked --dev
 
       - name: Run pytest
-        run: uv run pytest --cov=mcp_gateway --cov-report=xml
+        run: uv run --with pytest pytest --cov=mcp_gateway --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
