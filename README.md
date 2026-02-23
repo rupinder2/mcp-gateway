@@ -3,7 +3,8 @@
 [![PyPI Version](https://img.shields.io/pypi/v/mcp-orchestration-gateway.svg)](https://pypi.org/project/mcp-orchestration-gateway/)
 [![Python Version](https://img.shields.io/pypi/pyversions/mcp-orchestration-gateway)](https://pypi.org/project/mcp-orchestration-gateway/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/roop/mcp-gateway/actions/workflows/test.yml/badge.svg)](https://github.com/roop/mcp-gateway/actions)
+[![Tests](https://github.com/roop/mcp-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/roop/mcp-gateway/actions)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-blue.svg)](CONTRIBUTING.md)
 
 A central hub that connects to multiple downstream MCP servers, aggregates their tools, and provides unified access with powerful tool search capabilities.
 
@@ -283,3 +284,7 @@ mcp-gateway/
 ## License
 
 MIT License
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
