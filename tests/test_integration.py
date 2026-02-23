@@ -6,6 +6,7 @@ import asyncio
 import sys
 from pathlib import Path
 import httpx
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -14,67 +15,84 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp import ClientSession
 
 
+@pytest.mark.skip(
+    reason="Requires running MCP server - run manually for integration testing"
+)
 async def test_http_server():
     """Test HTTP server."""
     print("\n[1] Testing HTTP server (http://127.0.0.1:8000/mcp)")
     headers = {"Authorization": "Bearer sample-server-key"}
-    
+
     try:
         async with httpx.AsyncClient(headers=headers, timeout=30.0) as http_client:
-            async with streamable_http_client("http://127.0.0.1:8000/mcp", http_client=http_client) as (read, write, _get_session_id):
+            async with streamable_http_client(
+                "http://127.0.0.1:8000/mcp", http_client=http_client
+            ) as (read, write, _get_session_id):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     result = await session.list_tools()
                     print(f"  Found {len(result.tools)} tools")
-                    
+
                     # Test tool call
                     call_result = await session.call_tool("add", {"a": 5, "b": 3})
-                    print(f"  add(5, 3) = {call_result.content[0].text if call_result.content else 'N/A'}")
+                    print(
+                        f"  add(5, 3) = {call_result.content[0].text if call_result.content else 'N/A'}"
+                    )
                     return True
     except Exception as e:
         print(f"  ✗ Error: {type(e).__name__}: {e}")
         return False
 
 
+@pytest.mark.skip(
+    reason="Requires running MCP server - run manually for integration testing"
+)
 async def test_stdio_server():
     """Test STDIO server."""
     print("\n[2] Testing STDIO server")
-    
+
     try:
         stdio_params = StdioServerParameters(
             command="uv",
             args=["run", "python", "stdio_server/server.py"],
             env={},
         )
-        
+
         async with asyncio.timeout(30):
             async with stdio_client(stdio_params) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     result = await session.list_tools()
                     print(f"  Found {len(result.tools)} tools")
-                    
+
                     # Test tool call
                     call_result = await session.call_tool("echo", {"text": "test"})
-                    print(f"  echo('test') = {call_result.content[0].text if call_result.content else 'N/A'}")
-                    
+                    print(
+                        f"  echo('test') = {call_result.content[0].text if call_result.content else 'N/A'}"
+                    )
+
                     return True
     except Exception as e:
         print(f"  ✗ Error: {type(e).__name__}: {e}")
         return False
 
 
+@pytest.mark.skip(
+    reason="Requires running MCP server - run manually for integration testing"
+)
 async def test_router():
     """Test the gateway's ToolRouter with HTTP and stdio transports."""
     print("\n[3] Testing Gateway ToolRouter")
-    
+
     from mcp_gateway.tools.router import ToolRouter
-    
+
     results = []
-    
+
     # Test HTTP transport
     print("  HTTP transport:")
-    router = ToolRouter(timeout=30.0, gateway_auth_mode="auto", gateway_transport="http")
+    router = ToolRouter(
+        timeout=30.0, gateway_auth_mode="auto", gateway_transport="http"
+    )
     result = await router.call_tool(
         server_name="sample-http",
         server_url="http://127.0.0.1:8000/mcp",
@@ -86,10 +104,12 @@ async def test_router():
     success = result.get("success", False)
     print(f"    add(10, 20): {'✓' if success else '✗'}")
     results.append(("http", success))
-    
+
     # Test STDIO transport
     print("  STDIO transport:")
-    router = ToolRouter(timeout=30.0, gateway_auth_mode="auto", gateway_transport="stdio")
+    router = ToolRouter(
+        timeout=30.0, gateway_auth_mode="auto", gateway_transport="stdio"
+    )
     result = await router.call_tool(
         server_name="sample-stdio",
         server_url="stdio_server/server.py",
@@ -103,34 +123,43 @@ async def test_router():
     success = result.get("success", False)
     print(f"    echo('hello'): {'✓' if success else '✗'}")
     results.append(("stdio", success))
-    
+
     return results
 
 
+@pytest.mark.skip(
+    reason="Requires running MCP server - run manually for integration testing"
+)
 async def test_gateway_transports():
     """Test gateway with different transport modes."""
     print("\n[4] Testing Gateway Transport Combinations")
-    
+
     from mcp_gateway.storage.memory import InMemoryStorage
     from mcp_gateway.server.registry import ServerRegistry
     from mcp_gateway.tools.search import ToolSearchService
     from mcp_gateway.mcp_server import MCPGatewayServer
     from mcp_gateway.models import ServerRegistration, AuthConfig
-    
+
     test_cases = [
-        ("stdio", "stdio", "stdio_server/server.py", "uv", ["run", "python", "stdio_server/server.py"]),
+        (
+            "stdio",
+            "stdio",
+            "stdio_server/server.py",
+            "uv",
+            ["run", "python", "stdio_server/server.py"],
+        ),
         ("http", "http", "http://127.0.0.1:8000/mcp", None, None),
     ]
-    
+
     results = []
-    
+
     for gateway_transport, downstream_name, downstream_url, cmd, args in test_cases:
         print(f"\n  Gateway: {gateway_transport} -> Downstream: {downstream_name}")
-        
+
         storage = InMemoryStorage()
         registry = ServerRegistry(storage)
         tool_search = ToolSearchService()
-        
+
         server = MCPGatewayServer(
             storage=storage,
             server_registry=registry,
@@ -138,14 +167,16 @@ async def test_gateway_transports():
             gateway_auth_mode="auto",
             gateway_transport=gateway_transport,
         )
-        
+
         # Build registration based on transport type
         if downstream_name == "http":
             reg = ServerRegistration(
                 name=downstream_name,
                 url=downstream_url,
                 transport=downstream_name,
-                auth=AuthConfig(type="static", headers={"Authorization": "Bearer sample-server-key"}),
+                auth=AuthConfig(
+                    type="static", headers={"Authorization": "Bearer sample-server-key"}
+                ),
                 auto_discover=False,
             )
             auth_headers = {"Authorization": "Bearer sample-server-key"}
@@ -161,10 +192,10 @@ async def test_gateway_transports():
             )
             auth_headers = None
             tool_args = {"text": "test"}
-        
+
         try:
             await registry.register(reg)
-            
+
             # Discover tools
             tools = await server._discover_tools(
                 name=downstream_name,
@@ -174,10 +205,10 @@ async def test_gateway_transports():
                 args=args,
                 auth_headers=auth_headers,
             )
-            
+
             if tools:
                 await registry.store_tools(downstream_name, tools)
-                
+
                 # Find a suitable tool - prefer echo or get_time
                 first_tool = None
                 tool_args = {}
@@ -200,7 +231,7 @@ async def test_gateway_transports():
                                 tool_args[k] = "test"
                             elif v.get("type") == "number":
                                 tool_args[k] = 1
-                
+
                 # Call tool via router
                 result = await server._tool_router.call_tool(
                     server_name=downstream_name,
@@ -212,40 +243,43 @@ async def test_gateway_transports():
                     args=args,
                     auth_headers=auth_headers,
                 )
-                
+
                 success = result.get("success", False)
                 print(f"    Tool '{first_tool}': {'✓' if success else '✗'}")
                 results.append((gateway_transport, downstream_name, success))
             else:
                 print(f"    No tools discovered")
                 results.append((gateway_transport, downstream_name, False))
-                
+
         except Exception as e:
             print(f"    Error: {e}")
             results.append((gateway_transport, downstream_name, False))
-    
+
     return results
 
 
+@pytest.mark.skip(
+    reason="Requires running MCP server - run manually for integration testing"
+)
 async def test_call_remote_tool():
     """Test the call_remote_tool gateway tool."""
     print("\n[5] Testing call_remote_tool Gateway Tool")
-    
+
     from mcp_gateway.storage.memory import InMemoryStorage
     from mcp_gateway.server.registry import ServerRegistry
     from mcp_gateway.tools.search import ToolSearchService
     from mcp_gateway.mcp_server import MCPGatewayServer
     from mcp_gateway.models import ServerRegistration, AuthConfig
-    
+
     results = []
-    
+
     for gateway_transport in ["http", "stdio"]:
         print(f"\n  Gateway: {gateway_transport}")
-        
+
         storage = InMemoryStorage()
         registry = ServerRegistry(storage)
         tool_search = ToolSearchService()
-        
+
         server = MCPGatewayServer(
             storage=storage,
             server_registry=registry,
@@ -253,19 +287,21 @@ async def test_call_remote_tool():
             gateway_auth_mode="auto",
             gateway_transport=gateway_transport,
         )
-        
+
         # Register HTTP server
         reg = ServerRegistration(
             name="sample-http",
             url="http://127.0.0.1:8000/mcp",
             transport="http",
-            auth=AuthConfig(type="static", headers={"Authorization": "Bearer sample-server-key"}),
+            auth=AuthConfig(
+                type="static", headers={"Authorization": "Bearer sample-server-key"}
+            ),
             auto_discover=False,
         )
-        
+
         try:
             await registry.register(reg)
-            
+
             # Discover tools
             tools = await server._discover_tools(
                 name="sample-http",
@@ -273,10 +309,10 @@ async def test_call_remote_tool():
                 transport="http",
                 auth_headers={"Authorization": "Bearer sample-server-key"},
             )
-            
+
             if tools:
                 await registry.store_tools("sample-http", tools)
-                
+
                 # Use call_remote_tool
                 result = await server._tool_router.call_tool(
                     server_name="sample-http",
@@ -286,15 +322,15 @@ async def test_call_remote_tool():
                     transport="http",
                     auth_headers={"Authorization": "Bearer sample-server-key"},
                 )
-                
+
                 success = result.get("success", False)
                 print(f"    add(100, 200): {'✓' if success else '✗'}")
                 results.append((gateway_transport, success))
-                
+
         except Exception as e:
             print(f"    Error: {e}")
             results.append((gateway_transport, False))
-    
+
     return results
 
 
@@ -302,51 +338,51 @@ async def main():
     print("=" * 60)
     print("MCP Gateway Tool Call Validation")
     print("=" * 60)
-    
+
     # Test direct connections
     http_ok = await test_http_server()
     stdio_ok = await test_stdio_server()
-    
+
     # Test router
     router_results = await test_router()
-    
+
     # Test gateway transports
     gateway_results = await test_gateway_transports()
-    
+
     # Test call_remote_tool
     call_results = await test_call_remote_tool()
-    
+
     # Summary
     print("\n" + "=" * 60)
     print("VALIDATION SUMMARY")
     print("=" * 60)
-    
+
     print("\n[Direct Server Connections]")
     print(f"  HTTP (8000/mcp):    {'✓ PASS' if http_ok else '✗ FAIL'}")
     print(f"  STDIO (subprocess): {'✓ PASS' if stdio_ok else '✗ FAIL'}")
-    
+
     print("\n[ToolRouter Direct]")
     for transport, success in router_results:
         print(f"  {transport}: {'✓ PASS' if success else '✗ FAIL'}")
-    
+
     print("\n[Gateway Transport Combinations]")
     for gt, dt, success in gateway_results:
         print(f"  {gt} -> {dt}: {'✓ PASS' if success else '✗ FAIL'}")
-    
+
     print("\n[call_remote_tool]")
     for gt, success in call_results:
         print(f"  {gt}: {'✓ PASS' if success else '✗ FAIL'}")
-    
+
     # Calculate totals
     all_tests = [http_ok, stdio_ok]
     all_tests.extend([s for _, s in router_results])
     all_tests.extend([s for _, _, s in gateway_results])
     all_tests.extend([s for _, s in call_results])
-    
+
     passed = sum(1 for s in all_tests if s)
     total = len(all_tests)
-    
-    print(f"\n[TOTAL] {passed}/{total} tests passed ({100*passed//total}%)")
+
+    print(f"\n[TOTAL] {passed}/{total} tests passed ({100 * passed // total}%)")
 
 
 if __name__ == "__main__":
