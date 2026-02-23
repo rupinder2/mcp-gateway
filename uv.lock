@@ -698,7 +698,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mcp-gateway"
+name = "mcp-orchestration-gateway"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
