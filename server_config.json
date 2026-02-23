@@ -7,7 +7,7 @@
       "transport": "http",
       "auth_type": "static",
       "auth_headers": {
-        "Authorization": "Bearer sample-server-key"
+        "Authorization": "Bearer YOUR_API_KEY_HERE"
       },
       "auto_discover": true,
       "enabled": true,
