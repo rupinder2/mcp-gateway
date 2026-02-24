@@ -44,3 +44,4 @@ htmlcov/
 .DS_Store
 Thumbs.db
 AGENTS.md
+coverage.xml
