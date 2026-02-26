@@ -1,4 +1,4 @@
-"""Data models for MCP Gateway."""
+"""Data models for MCP Orchestrator."""
 
 from datetime import datetime
 from typing import Optional, Literal, Dict, Any, List
@@ -113,8 +113,8 @@ class ToolCallRequest(BaseModel):
     arguments: Dict[str, Any]
 
 
-class GatewayConfig(BaseModel):
-    """Main gateway configuration."""
+class OrchestratorConfig(BaseModel):
+    """Main orchestrator configuration."""
     storage_backend: Literal["memory", "redis"] = "memory"
     redis_url: Optional[str] = "redis://localhost:6379/0"
     
@@ -129,7 +129,7 @@ class GatewayConfig(BaseModel):
     
     mcp_transport: TransportMode = "stdio"
     
-    gateway_auth_mode: AuthMode = "auto"
+    auth_mode: AuthMode = "auto"
     
     server_config_path: Optional[str] = "server_config.json"
     

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.rupinder2/mcp-orchestrator",
+  "description": "Aggregates tools from multiple MCP servers with unified BM25/regex search and deferred loading.",
+  "repository": {
+    "url": "https://github.com/rupinder2/mcp-orchestrator",
+    "source": "github"
+  },
+  "version": "0.1.2",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "mcp-orchestrator",
+      "version": "0.1.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "STORAGE_BACKEND",
+          "description": "Storage backend for tool cache. Use 'memory' for development or 'redis' for production.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "REDIS_URL",
+          "description": "Redis connection URL. Required only when STORAGE_BACKEND=redis.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "SERVER_CONFIG_PATH",
+          "description": "Path to the server_config.json file listing downstream MCP servers.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    },
+    {
+      "registryType": "pypi",
+      "identifier": "mcp-orchestrator",
+      "version": "0.1.2",
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:{ORCHESTRATOR_PORT}/mcp"
+      },
+      "environmentVariables": [
+        {
+          "name": "ORCHESTRATOR_PORT",
+          "description": "Port for the HTTP transport server (default: 8080).",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "STORAGE_BACKEND",
+          "description": "Storage backend for tool cache. Use 'memory' for development or 'redis' for production.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "REDIS_URL",
+          "description": "Redis connection URL. Required only when STORAGE_BACKEND=redis.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "SERVER_CONFIG_PATH",
+          "description": "Path to the server_config.json file listing downstream MCP servers.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

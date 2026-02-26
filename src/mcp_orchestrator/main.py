@@ -1,4 +1,4 @@
-"""Main entry point for MCP Gateway."""
+"""Main entry point for MCP Orchestrator."""
 
 import asyncio
 import logging
@@ -10,8 +10,8 @@ from typing import Optional
 from dotenv import load_dotenv
 
 from .config_loader import ServerConfigLoader
-from .models import GatewayConfig
-from .mcp_server import MCPGatewayServer
+from .models import OrchestratorConfig
+from .mcp_server import MCPOrchestratorServer
 from .server.registry import ServerRegistry
 from .storage.base import StorageBackend
 from .storage.memory import InMemoryStorage
@@ -31,29 +31,29 @@ def setup_logging(log_level: str = "INFO") -> None:
     )
 
 
-def create_storage(config: GatewayConfig) -> StorageBackend:
+def create_storage(config: OrchestratorConfig) -> StorageBackend:
     """Create storage backend based on configuration."""
     if config.storage_backend == "redis":
         return RedisStorage(config.redis_url or "redis://localhost:6379/0")
     return InMemoryStorage()
 
 
-def create_config_from_env() -> GatewayConfig:
+def create_config_from_env() -> OrchestratorConfig:
     """Create configuration from environment variables."""
-    
-    return GatewayConfig(
+
+    return OrchestratorConfig(
         storage_backend=os.getenv("STORAGE_BACKEND", "memory"),
         redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        tool_cache_ttl=int(os.getenv("MCP_GATEWAY_TOOL_CACHE_TTL", "300")),
-        default_connection_mode=os.getenv("MCP_GATEWAY_DEFAULT_CONNECTION_MODE", "stateless"),
-        connection_timeout=float(os.getenv("MCP_GATEWAY_CONNECTION_TIMEOUT", "30.0")),
-        max_retries=int(os.getenv("MCP_GATEWAY_MAX_RETRIES", "3")),
-        http_host=os.getenv("GATEWAY_HTTP_HOST", "0.0.0.0"),
-        http_port=int(os.getenv("GATEWAY_PORT", "8080")),
-        mcp_transport=os.getenv("GATEWAY_TRANSPORT", "stdio"),
-        gateway_auth_mode=os.getenv("GATEWAY_AUTH_MODE", "auto"),
+        tool_cache_ttl=int(os.getenv("MCP_ORCHESTRATOR_TOOL_CACHE_TTL", "300")),
+        default_connection_mode=os.getenv("MCP_ORCHESTRATOR_DEFAULT_CONNECTION_MODE", "stateless"),
+        connection_timeout=float(os.getenv("MCP_ORCHESTRATOR_CONNECTION_TIMEOUT", "30.0")),
+        max_retries=int(os.getenv("MCP_ORCHESTRATOR_MAX_RETRIES", "3")),
+        http_host=os.getenv("ORCHESTRATOR_HTTP_HOST", "0.0.0.0"),
+        http_port=int(os.getenv("ORCHESTRATOR_PORT", "8080")),
+        mcp_transport=os.getenv("ORCHESTRATOR_TRANSPORT", "stdio"),
+        auth_mode=os.getenv("ORCHESTRATOR_AUTH_MODE", "auto"),
         server_config_path=os.getenv("SERVER_CONFIG_PATH", "server_config.json"),
-        log_level=os.getenv("GATEWAY_LOG_LEVEL", "INFO"),
+        log_level=os.getenv("ORCHESTRATOR_LOG_LEVEL", "INFO"),
     )
 
 
@@ -66,7 +66,7 @@ def main() -> None:
     setup_logging(config.log_level)
     logger = logging.getLogger(__name__)
     
-    logger.info("Starting MCP Gateway...")
+    logger.info("Starting MCP Orchestrator...")
     logger.info(f"Storage backend: {config.storage_backend}")
     
     # Create storage backend
@@ -80,9 +80,9 @@ def main() -> None:
         tool_search = ToolSearchService()
         
         # Create MCP server
-        server = MCPGatewayServer(storage, registry, tool_search, config.gateway_auth_mode, config.mcp_transport)
-        
-        logger.info("MCP Gateway server initialized")
+        server = MCPOrchestratorServer(storage, registry, tool_search, config.auth_mode, config.mcp_transport)
+
+        logger.info("MCP Orchestrator server initialized")
         logger.info(f"Running with {config.mcp_transport} transport")
         
         # Load server configuration from file if provided
@@ -116,9 +116,9 @@ def main() -> None:
             server.run(transport=config.mcp_transport)
         
     except KeyboardInterrupt:
-        logger.info("Shutting down MCP Gateway...")
+        logger.info("Shutting down MCP Orchestrator...")
     except Exception as e:
-        logger.exception(f"Error running MCP Gateway: {e}")
+        logger.exception(f"Error running MCP Orchestrator: {e}")
         sys.exit(1)
     finally:
         # Cleanup

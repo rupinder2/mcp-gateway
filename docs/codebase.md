@@ -1,16 +1,16 @@
-# MCP Gateway Codebase Snapshot
+# MCP Orchestrator Codebase Snapshot
 
 > Last updated: February 2026
 
 ## Overview
 
-MCP Orchestration Gateway is a FastMCP-based server that aggregates tools from multiple downstream MCP servers, providing unified access with BM25/regex search and deferred tool loading.
+MCP Orchestrator is a FastMCP-based server that aggregates tools from multiple downstream MCP servers, providing unified access with BM25/regex search and deferred tool loading.
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              MCP Orchestration Gateway               │
+│              MCP Orchestrator               │
 │                                                      │
 │  ┌──────────────────────────────────────────────┐   │
 │  │              FastMCP Server                   │   │
@@ -40,7 +40,7 @@ MCP Orchestration Gateway is a FastMCP-based server that aggregates tools from m
 |------|-------------|
 | `main.py` | Entry point - creates storage, registry, search service, and runs FastMCP server |
 | `mcp_server.py` | FastMCP server implementation with search/call tools and dynamic tool registration |
-| `models.py` | Pydantic models for GatewayConfig, ServerRegistration, ServerInfo, AuthConfig, ToolReference |
+| `models.py` | Pydantic models for OrchestratorConfig, ServerRegistration, ServerInfo, AuthConfig, ToolReference |
 | `config_loader.py` | Loads server configurations from JSON file |
 
 ### Server Registry (`server/registry.py`)
@@ -108,9 +108,9 @@ Environment variables (see `main.py:create_config_from_env()`):
 |----------|---------|-------------|
 | `STORAGE_BACKEND` | `memory` | Storage backend |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection |
-| `GATEWAY_TRANSPORT` | `stdio` | `stdio` or `http` |
-| `GATEWAY_PORT` | `8080` | HTTP port |
-| `GATEWAY_LOG_LEVEL` | `INFO` | Logging level |
+| `ORCHESTRATOR_TRANSPORT` | `stdio` | `stdio` or `http` |
+| `ORCHESTRATOR_PORT` | `8080` | HTTP port |
+| `ORCHESTRATOR_LOG_LEVEL` | `INFO` | Logging level |
 | `SERVER_CONFIG_PATH` | `server_config.json` | Server config file |
 
 ## Dependencies

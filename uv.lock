@@ -698,8 +698,8 @@ wheels = [
 ]
 
 [[package]]
-name = "mcp-orchestration-gateway"
-version = "0.1.0"
+name = "mcp-orchestrator"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "cachetools" },

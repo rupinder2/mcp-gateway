@@ -1,7 +1,7 @@
 """Tests for tool search service."""
 
 import pytest
-from mcp_gateway.tools.search import ToolSearchService
+from mcp_orchestrator.tools.search import ToolSearchService
 
 
 @pytest.fixture

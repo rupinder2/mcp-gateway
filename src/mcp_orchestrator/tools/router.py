@@ -1,11 +1,11 @@
 """Tool router for forwarding calls to downstream MCP servers.
 
 This module provides the ToolRouter class which handles routing tool calls
-from the gateway to downstream MCP servers using various transport protocols
+from the orchestrator to downstream MCP servers using various transport protocols
 (HTTP, STDIO, SSE).
 
 Usage:
-    router = ToolRouter(timeout=30.0, gateway_auth_mode="auto")
+    router = ToolRouter(timeout=30.0, auth_mode="auto")
     result = await router.call_tool(
         server_name="my-server",
         server_url="http://localhost:8080/mcp",
@@ -18,7 +18,7 @@ The router supports:
 - HTTP streamable transport for HTTP-based MCP servers
 - STDIO transport for subprocess-based MCP servers
 - SSE transport for server-sent events based MCP servers
-- Auth header forwarding based on gateway configuration
+- Auth header forwarding based on orchestrator configuration
 - Schema caching for performance optimization
 """
 
@@ -46,20 +46,20 @@ class ToolRouter:
         self,
         timeout: float = 30.0,
         cache_ttl: int = 300,
-        gateway_auth_mode: Literal["auto", "static", "forward"] = "auto",
-        gateway_transport: Literal["stdio", "http"] = "stdio",
+        auth_mode: Literal["auto", "static", "forward"] = "auto",
+        transport: Literal["stdio", "http"] = "stdio",
     ):
         """Initialize the tool router.
         
         Args:
             timeout: Default timeout for tool calls in seconds
             cache_ttl: Time-to-live for cached schemas in seconds (default: 5 minutes)
-            gateway_auth_mode: Auth mode for the gateway (auto, static, forward)
-            gateway_transport: Transport mode for the gateway (stdio or http)
+            auth_mode: Auth mode for the orchestrator (auto, static, forward)
+            transport: Transport mode for the orchestrator (stdio or http)
         """
         self._timeout = timeout
-        self._gateway_auth_mode = gateway_auth_mode
-        self._gateway_transport = gateway_transport
+        self._auth_mode = auth_mode
+        self._transport = transport
         # Cache for tool schemas: maps (server_name, tool_name) -> schema
         # TTL of 5 minutes, max 1000 entries
         self._schema_cache: TTLCache = TTLCache(maxsize=1000, ttl=cache_ttl)
@@ -98,7 +98,7 @@ class ToolRouter:
         logger.debug("Schema cache cleared")
     
     def _should_forward_auth(self, server_transport: str) -> bool:
-        """Determine if auth headers should be forwarded based on gateway auth mode.
+        """Determine if auth headers should be forwarded based on orchestrator auth mode.
         
         Args:
             server_transport: Transport type of the downstream server
@@ -106,14 +106,14 @@ class ToolRouter:
         Returns:
             True if auth should be forwarded, False if static auth should be used
         """
-        if self._gateway_auth_mode == "static":
+        if self._auth_mode == "static":
             return False
-        elif self._gateway_auth_mode == "forward":
+        elif self._auth_mode == "forward":
             return True
         else:  # "auto"
-            # If gateway is running in HTTP mode, forward auth
-            # If gateway is running in STDIO mode, use static auth
-            return self._gateway_transport == "http"
+            # If orchestrator is running in HTTP mode, forward auth
+            # If orchestrator is running in STDIO mode, use static auth
+            return self._transport == "http"
     
     def _get_effective_auth_headers(
         self,
@@ -121,7 +121,7 @@ class ToolRouter:
         client_auth_header: Optional[str],
         server_transport: str,
     ) -> Optional[Dict[str, str]]:
-        """Get effective auth headers based on gateway auth mode.
+        """Get effective auth headers based on orchestrator auth mode.
         
         Args:
             server_auth_headers: Auth headers configured when registering the server
@@ -171,7 +171,7 @@ class ToolRouter:
         Returns:
             Raw tool call result from remote server
         """
-        # Determine effective auth headers based on gateway auth mode
+        # Determine effective auth headers based on orchestrator auth mode
         effective_auth = self._get_effective_auth_headers(
             server_auth_headers=auth_headers,
             client_auth_header=None,  # Will be passed from the tool call

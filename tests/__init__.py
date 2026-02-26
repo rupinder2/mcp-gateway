@@ -1,1 +1,1 @@
-"""Tests for MCP Gateway."""
+"""Tests for MCP Orchestrator."""

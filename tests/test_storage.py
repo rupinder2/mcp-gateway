@@ -2,8 +2,8 @@
 
 import pytest
 import asyncio
-from mcp_gateway.storage.memory import InMemoryStorage
-from mcp_gateway.storage.base import StorageBackend
+from mcp_orchestrator.storage.memory import InMemoryStorage
+from mcp_orchestrator.storage.base import StorageBackend
 
 
 @pytest.fixture

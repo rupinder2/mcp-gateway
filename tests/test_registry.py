@@ -2,9 +2,9 @@
 
 import pytest
 from datetime import datetime
-from mcp_gateway.models import ServerRegistration, AuthConfig
-from mcp_gateway.server.registry import ServerRegistry
-from mcp_gateway.storage.memory import InMemoryStorage
+from mcp_orchestrator.models import ServerRegistration, AuthConfig
+from mcp_orchestrator.server.registry import ServerRegistry
+from mcp_orchestrator.storage.memory import InMemoryStorage
 
 
 @pytest.fixture
