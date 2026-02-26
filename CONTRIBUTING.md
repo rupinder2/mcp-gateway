@@ -1,4 +1,4 @@
-# Contributing to MCP Gateway
+# Contributing to MCP Orchestrator
 
 Thank you for your interest in contributing! This project welcomes contributions from the community.
 
@@ -6,8 +6,8 @@ Thank you for your interest in contributing! This project welcomes contributions
 
 ```bash
 # Clone the repository
-git clone https://github.com/rupinder2/mcp-gateway.git
-cd mcp-gateway
+git clone https://github.com/rupinder2/mcp-orchestrator.git
+cd mcp-orchestrator
 
 # Install dependencies with uv
 uv sync --dev
@@ -30,16 +30,16 @@ cp .env.example .env
 
 ```bash
 # Run as stdio MCP server
-python -m mcp_gateway.main
+python -m mcp_orchestrator.main
 
 # Or with HTTP transport
-GATEWAY_TRANSPORT=http GATEWAY_PORT=8080 python -m mcp_gateway.main
+ORCHESTRATOR_TRANSPORT=http ORCHESTRATOR_PORT=8080 python -m mcp_orchestrator.main
 ```
 
 ### Testing with MCP Inspector
 
 ```bash
-mcp dev src/mcp_gateway/main.py
+mcp dev src/mcp_orchestrator/main.py
 ```
 
 ## How to Contribute
@@ -52,7 +52,7 @@ mcp dev src/mcp_gateway/main.py
 
 ### New Storage Backends
 
-1. Implement the `StorageBackend` interface from `src/mcp_gateway/storage/base.py`
+1. Implement the `StorageBackend` interface from `src/mcp_orchestrator/storage/base.py`
 2. Add configuration handling in the storage module
 3. Include comprehensive tests (success and error paths)
 4. Update documentation
@@ -85,4 +85,4 @@ mcp dev src/mcp_gateway/main.py
 
 ## Questions?
 
-Open a discussion at https://github.com/rupinder2/mcp-gateway/discussions
+Open a discussion at https://github.com/rupinder2/mcp-orchestrator/discussions

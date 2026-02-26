@@ -1,4 +1,4 @@
-"""Server configuration file loader for MCP Gateway.
+"""Server configuration file loader for MCP Orchestrator.
 
 Allows pre-configuring servers at startup via a JSON configuration file.
 """
@@ -13,7 +13,7 @@ from .server.registry import ServerRegistry
 from .tools.search import ToolSearchService
 
 if TYPE_CHECKING:
-    from .mcp_server import MCPGatewayServer
+    from .mcp_server import MCPOrchestratorServer
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +33,14 @@ class ServerConfigLoader:
         self,
         registry: ServerRegistry,
         tool_search: ToolSearchService,
-        mcp_server: "MCPGatewayServer",
+        mcp_server: "MCPOrchestratorServer",
     ) -> Dict[str, Any]:
         """Load servers from config file and register them.
         
         Args:
             registry: ServerRegistry instance
             tool_search: ToolSearchService for indexing tools
-            mcp_server: MCPGatewayServer instance for tool discovery
+            mcp_server: MCPOrchestratorServer instance for tool discovery
         
         Returns:
             Summary dict with servers_loaded, servers_failed, servers_skipped, total_tools
@@ -137,7 +137,7 @@ class ServerConfigLoader:
         entry: ServerConfigEntry,
         registry: ServerRegistry,
         tool_search: ToolSearchService,
-        mcp_server: "MCPGatewayServer",
+        mcp_server: "MCPOrchestratorServer",
     ) -> Dict[str, Any]:
         """Register a single server from config.
         
@@ -145,7 +145,7 @@ class ServerConfigLoader:
             entry: ServerConfigEntry from the config
             registry: ServerRegistry instance
             tool_search: ToolSearchService for indexing tools
-            mcp_server: MCPGatewayServer instance
+            mcp_server: MCPOrchestratorServer instance
         
         Returns:
             Dict with success, error, tool_count

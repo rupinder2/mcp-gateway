@@ -1,4 +1,4 @@
-"""FastMCP server for MCP Gateway."""
+"""FastMCP server for MCP Orchestrator."""
 
 import logging
 from typing import Optional, Dict, Any, List, Literal
@@ -25,38 +25,38 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
-class MCPGatewayServer:
-    """FastMCP server implementation for MCP Gateway."""
-    
+class MCPOrchestratorServer:
+    """FastMCP server implementation for MCP Orchestrator."""
+
     def __init__(
         self,
         storage: StorageBackend,
         server_registry: ServerRegistry,
         tool_search: ToolSearchService,
-        gateway_auth_mode: Literal["auto", "static", "forward"] = "auto",
-        gateway_transport: Literal["stdio", "http"] = "stdio",
+        auth_mode: Literal["auto", "static", "forward"] = "auto",
+        transport: Literal["stdio", "http"] = "stdio",
     ):
-        """Initialize the MCP Gateway server.
-        
+        """Initialize the MCP Orchestrator server.
+
         Args:
             storage: Storage backend for persistent data
             server_registry: Server registry for managing MCP servers
             tool_search: Tool search service for regex and BM25 search
-            gateway_auth_mode: Auth mode for the gateway (auto, static, forward)
-            gateway_transport: Transport mode for the gateway (stdio or http)
+            auth_mode: Auth mode for the orchestrator (auto, static, forward)
+            transport: Transport mode for the orchestrator (stdio or http)
         """
         self._storage = storage
         self._registry = server_registry
         self._tool_search = tool_search
-        self._gateway_auth_mode = gateway_auth_mode
-        self._gateway_transport = gateway_transport
-        self._tool_router = ToolRouter(gateway_auth_mode=gateway_auth_mode, gateway_transport=gateway_transport)
-        
+        self._auth_mode = auth_mode
+        self._transport = transport
+        self._tool_router = ToolRouter(auth_mode=auth_mode, transport=transport)
+
         # Track which deferred tools have been activated as live FastMCP tools
         self._active_tools: set[str] = set()
-        
+
         # Initialize FastMCP server
-        self._mcp = FastMCP("mcp-gateway")
+        self._mcp = FastMCP("mcp-orchestrator")
         
         # Register search tools
         self._register_search_tools()
@@ -212,7 +212,7 @@ class MCPGatewayServer:
             raise
     
     def _register_search_tools(self) -> None:
-        """Register search tools for the gateway."""
+        """Register search tools for the orchestrator."""
         
         @self._mcp.tool()
         async def tool_search(
@@ -304,7 +304,7 @@ class MCPGatewayServer:
             arguments: Optional[Dict[str, Any]] = None,
             auth_header: Optional[str] = None,
         ) -> Any:
-            """Call a tool directly on a registered remote MCP server through the gateway.
+            """Call a tool directly on a registered remote MCP server through the orchestrator.
             
             This tool allows direct invocation of any tool on a downstream MCP server.
             The tool name should be in the format 'server_name__tool_name' (e.g., 'context7__query-docs').
@@ -413,7 +413,7 @@ class MCPGatewayServer:
         # Build a comprehensive description including server info and schema
         full_description = f"""{description}
 
-This tool is proxied from '{server_name}' server via MCP Gateway.
+This tool is proxied from '{server_name}' server via MCP Orchestrator.
 Original tool name: {tool_name}
 
 Input Schema:
@@ -548,7 +548,7 @@ Input Schema:
             middleware = [
                 Middleware(
                     CORSMiddleware,
-                    allow_origins=["*"],  # Allow all origins for gateway
+                    allow_origins=["*"],  # Allow all origins for orchestrator
                     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
                     allow_headers=[
                         "mcp-protocol-version",
@@ -570,17 +570,17 @@ async def create_mcp_server(
     storage: StorageBackend,
     server_registry: ServerRegistry,
     tool_search: ToolSearchService,
-) -> MCPGatewayServer:
-    """Factory function to create and initialize the MCP Gateway server.
-    
+) -> MCPOrchestratorServer:
+    """Factory function to create and initialize the MCP Orchestrator server.
+
     Args:
         storage: Storage backend for persistent data
         server_registry: Server registry for managing MCP servers
         tool_search: Tool search service for regex and BM25 search
-    
+
     Returns:
-        Initialized MCPGatewayServer instance
+        Initialized MCPOrchestratorServer instance
     """
-    server = MCPGatewayServer(storage, server_registry, tool_search)
+    server = MCPOrchestratorServer(storage, server_registry, tool_search)
     await server.register_dynamic_tools()
     return server

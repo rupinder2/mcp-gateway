@@ -1,5 +1,5 @@
 """
-MCP Gateway Tool Call Validation - Final Version
+MCP Orchestrator Tool Call Validation - Final Version
 """
 
 import asyncio
@@ -81,17 +81,17 @@ async def test_stdio_server():
     reason="Requires running MCP server - run manually for integration testing"
 )
 async def test_router():
-    """Test the gateway's ToolRouter with HTTP and stdio transports."""
-    print("\n[3] Testing Gateway ToolRouter")
+    """Test the orchestrator's ToolRouter with HTTP and stdio transports."""
+    print("\n[3] Testing Orchestrator ToolRouter")
 
-    from mcp_gateway.tools.router import ToolRouter
+    from mcp_orchestrator.tools.router import ToolRouter
 
     results = []
 
     # Test HTTP transport
     print("  HTTP transport:")
     router = ToolRouter(
-        timeout=30.0, gateway_auth_mode="auto", gateway_transport="http"
+        timeout=30.0, auth_mode="auto", transport="http"
     )
     result = await router.call_tool(
         server_name="sample-http",
@@ -108,7 +108,7 @@ async def test_router():
     # Test STDIO transport
     print("  STDIO transport:")
     router = ToolRouter(
-        timeout=30.0, gateway_auth_mode="auto", gateway_transport="stdio"
+        timeout=30.0, auth_mode="auto", transport="stdio"
     )
     result = await router.call_tool(
         server_name="sample-stdio",
@@ -130,15 +130,15 @@ async def test_router():
 @pytest.mark.skip(
     reason="Requires running MCP server - run manually for integration testing"
 )
-async def test_gateway_transports():
-    """Test gateway with different transport modes."""
-    print("\n[4] Testing Gateway Transport Combinations")
+async def test_transports():
+    """Test orchestrator with different transport modes."""
+    print("\n[4] Testing Orchestrator Transport Combinations")
 
-    from mcp_gateway.storage.memory import InMemoryStorage
-    from mcp_gateway.server.registry import ServerRegistry
-    from mcp_gateway.tools.search import ToolSearchService
-    from mcp_gateway.mcp_server import MCPGatewayServer
-    from mcp_gateway.models import ServerRegistration, AuthConfig
+    from mcp_orchestrator.storage.memory import InMemoryStorage
+    from mcp_orchestrator.server.registry import ServerRegistry
+    from mcp_orchestrator.tools.search import ToolSearchService
+    from mcp_orchestrator.mcp_server import MCPOrchestratorServer
+    from mcp_orchestrator.models import ServerRegistration, AuthConfig
 
     test_cases = [
         (
@@ -153,19 +153,19 @@ async def test_gateway_transports():
 
     results = []
 
-    for gateway_transport, downstream_name, downstream_url, cmd, args in test_cases:
-        print(f"\n  Gateway: {gateway_transport} -> Downstream: {downstream_name}")
+    for transport, downstream_name, downstream_url, cmd, args in test_cases:
+        print(f"\n  Orchestrator: {transport} -> Downstream: {downstream_name}")
 
         storage = InMemoryStorage()
         registry = ServerRegistry(storage)
         tool_search = ToolSearchService()
 
-        server = MCPGatewayServer(
+        server = MCPOrchestratorServer(
             storage=storage,
             server_registry=registry,
             tool_search=tool_search,
-            gateway_auth_mode="auto",
-            gateway_transport=gateway_transport,
+            auth_mode="auto",
+            transport=transport,
         )
 
         # Build registration based on transport type
@@ -246,14 +246,14 @@ async def test_gateway_transports():
 
                 success = result.get("success", False)
                 print(f"    Tool '{first_tool}': {'✓' if success else '✗'}")
-                results.append((gateway_transport, downstream_name, success))
+                results.append((transport, downstream_name, success))
             else:
                 print(f"    No tools discovered")
-                results.append((gateway_transport, downstream_name, False))
+                results.append((transport, downstream_name, False))
 
         except Exception as e:
             print(f"    Error: {e}")
-            results.append((gateway_transport, downstream_name, False))
+            results.append((transport, downstream_name, False))
 
     return results
 
@@ -262,30 +262,30 @@ async def test_gateway_transports():
     reason="Requires running MCP server - run manually for integration testing"
 )
 async def test_call_remote_tool():
-    """Test the call_remote_tool gateway tool."""
-    print("\n[5] Testing call_remote_tool Gateway Tool")
+    """Test the call_remote_tool orchestrator tool."""
+    print("\n[5] Testing call_remote_tool Orchestrator Tool")
 
-    from mcp_gateway.storage.memory import InMemoryStorage
-    from mcp_gateway.server.registry import ServerRegistry
-    from mcp_gateway.tools.search import ToolSearchService
-    from mcp_gateway.mcp_server import MCPGatewayServer
-    from mcp_gateway.models import ServerRegistration, AuthConfig
+    from mcp_orchestrator.storage.memory import InMemoryStorage
+    from mcp_orchestrator.server.registry import ServerRegistry
+    from mcp_orchestrator.tools.search import ToolSearchService
+    from mcp_orchestrator.mcp_server import MCPOrchestratorServer
+    from mcp_orchestrator.models import ServerRegistration, AuthConfig
 
     results = []
 
-    for gateway_transport in ["http", "stdio"]:
-        print(f"\n  Gateway: {gateway_transport}")
+    for transport in ["http", "stdio"]:
+        print(f"\n  Orchestrator: {transport}")
 
         storage = InMemoryStorage()
         registry = ServerRegistry(storage)
         tool_search = ToolSearchService()
 
-        server = MCPGatewayServer(
+        server = MCPOrchestratorServer(
             storage=storage,
             server_registry=registry,
             tool_search=tool_search,
-            gateway_auth_mode="auto",
-            gateway_transport=gateway_transport,
+            auth_mode="auto",
+            transport=transport,
         )
 
         # Register HTTP server
@@ -325,18 +325,18 @@ async def test_call_remote_tool():
 
                 success = result.get("success", False)
                 print(f"    add(100, 200): {'✓' if success else '✗'}")
-                results.append((gateway_transport, success))
+                results.append((transport, success))
 
         except Exception as e:
             print(f"    Error: {e}")
-            results.append((gateway_transport, False))
+            results.append((transport, False))
 
     return results
 
 
 async def main():
     print("=" * 60)
-    print("MCP Gateway Tool Call Validation")
+    print("MCP Orchestrator Tool Call Validation")
     print("=" * 60)
 
     # Test direct connections
@@ -346,8 +346,8 @@ async def main():
     # Test router
     router_results = await test_router()
 
-    # Test gateway transports
-    gateway_results = await test_gateway_transports()
+    # Test orchestrator transports
+    orchestrator_results = await test_transports()
 
     # Test call_remote_tool
     call_results = await test_call_remote_tool()
@@ -365,8 +365,8 @@ async def main():
     for transport, success in router_results:
         print(f"  {transport}: {'✓ PASS' if success else '✗ FAIL'}")
 
-    print("\n[Gateway Transport Combinations]")
-    for gt, dt, success in gateway_results:
+    print("\n[Orchestrator Transport Combinations]")
+    for gt, dt, success in orchestrator_results:
         print(f"  {gt} -> {dt}: {'✓ PASS' if success else '✗ FAIL'}")
 
     print("\n[call_remote_tool]")
@@ -376,7 +376,7 @@ async def main():
     # Calculate totals
     all_tests = [http_ok, stdio_ok]
     all_tests.extend([s for _, s in router_results])
-    all_tests.extend([s for _, _, s in gateway_results])
+    all_tests.extend([s for _, _, s in orchestrator_results])
     all_tests.extend([s for _, s in call_results])
 
     passed = sum(1 for s in all_tests if s)

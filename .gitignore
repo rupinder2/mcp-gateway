@@ -45,3 +45,7 @@ htmlcov/
 Thumbs.db
 AGENTS.md
 coverage.xml
+
+.claude/
+.cursor/.mcpregistry_github_token
+.mcpregistry_registry_token

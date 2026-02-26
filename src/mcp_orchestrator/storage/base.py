@@ -1,4 +1,4 @@
-"""Storage backends for MCP Gateway."""
+"""Storage backends for MCP Orchestrator."""
 
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List

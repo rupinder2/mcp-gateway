@@ -27,10 +27,10 @@ Usage:
     servers = await registry.list_all()
 
 Storage keys used:
-- gateway:servers - Hash of all registered servers
-- gateway:server:{name}:auth - Auth configuration for a server
-- gateway:server:{name}:tools - Tool list for a server
-- gateway:tool_meta:{namespaced_name} - Metadata for individual tools
+- orchestrator:servers - Hash of all registered servers
+- orchestrator:server:{name}:auth - Auth configuration for a server
+- orchestrator:server:{name}:tools - Tool list for a server
+- orchestrator:tool_meta:{namespaced_name} - Metadata for individual tools
 """
 
 from datetime import datetime
@@ -46,7 +46,7 @@ class ServerRegistry:
     
     def __init__(self, storage: StorageBackend):
         self._storage = storage
-        self._servers_key = "gateway:servers"
+        self._servers_key = "orchestrator:servers"
     
     async def register(self, registration: ServerRegistration) -> ServerInfo:
         """Register a new MCP server."""
@@ -80,7 +80,7 @@ class ServerRegistry:
         # Store auth config separately
         if registration.auth.type != "none":
             await self._storage.hset(
-                f"gateway:server:{registration.name}:auth",
+                f"orchestrator:server:{registration.name}:auth",
                 "config",
                 registration.auth.model_dump()
             )
@@ -98,10 +98,10 @@ class ServerRegistry:
         await self._storage.hdel(self._servers_key, name)
         
         # Remove auth config
-        await self._storage.delete(f"gateway:server:{name}:auth")
+        await self._storage.delete(f"orchestrator:server:{name}:auth")
         
         # Remove tools
-        await self._storage.delete(f"gateway:server:{name}:tools")
+        await self._storage.delete(f"orchestrator:server:{name}:tools")
         
         # Remove tool metadata
         await self.remove_tool_metadata(name)
@@ -167,7 +167,7 @@ class ServerRegistry:
     async def get_auth_config(self, name: str) -> Optional[AuthConfig]:
         """Get auth config for a server."""
         data = await self._storage.hget(
-            f"gateway:server:{name}:auth",
+            f"orchestrator:server:{name}:auth",
             "config"
         )
         if data:
@@ -181,7 +181,7 @@ class ServerRegistry:
         """
         # Store the full tools list
         await self._storage.set(
-            f"gateway:server:{name}:tools",
+            f"orchestrator:server:{name}:tools",
             tools
         )
         
@@ -193,7 +193,7 @@ class ServerRegistry:
     
     async def get_tools(self, name: str) -> List[Dict]:
         """Get tools for a server."""
-        tools = await self._storage.get(f"gateway:server:{name}:tools")
+        tools = await self._storage.get(f"orchestrator:server:{name}:tools")
         return tools or []
 
     async def store_tool_metadata(
@@ -218,7 +218,7 @@ class ServerRegistry:
             "description": tool_data.get("description", ""),
             "input_schema": tool_data.get("input_schema", {}),
         }
-        await self._storage.set(f"gateway:tool_meta:{namespaced_name}", metadata)
+        await self._storage.set(f"orchestrator:tool_meta:{namespaced_name}", metadata)
     
     async def get_tool_metadata(
         self,
@@ -227,7 +227,7 @@ class ServerRegistry:
         """Retrieve stored metadata for a tool by its namespaced name.
         Returns None if not found.
         """
-        metadata = await self._storage.get(f"gateway:tool_meta:{namespaced_name}")
+        metadata = await self._storage.get(f"orchestrator:tool_meta:{namespaced_name}")
         return metadata
     
     async def get_all_tool_metadata(self) -> List[Dict[str, Any]]:
@@ -237,7 +237,7 @@ class ServerRegistry:
         """
         # Scan for all tool metadata keys
         all_metadata = []
-        pattern = "gateway:tool_meta:*"
+        pattern = "orchestrator:tool_meta:*"
         
         # Get all keys matching the pattern
         keys = await self._storage.keys(pattern)
@@ -251,7 +251,7 @@ class ServerRegistry:
     
     async def remove_tool_metadata(self, server_name: str) -> None:
         """Remove all tool metadata for a server."""
-        pattern = f"gateway:tool_meta:{server_name}__*"
+        pattern = f"orchestrator:tool_meta:{server_name}__*"
         keys = await self._storage.keys(pattern)
         for key in keys:
             await self._storage.delete(key)

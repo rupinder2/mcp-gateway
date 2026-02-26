@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mcp-orchestration-gateway"
-version = "0.1.0"
-description = "MCP Orchestration Gateway - Aggregates and searches tools from multiple MCP servers with deferred loading"
+name = "mcp-orchestrator"
+version = "0.1.2"
+description = "Orchestrates multiple MCP servers with unified tool search (BM25/regex) and deferred loading"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -46,10 +46,10 @@ dev = [
 ]
 
 [project.scripts]
-mcp-orchestration-gateway = "mcp_gateway.main:main"
+mcp-orchestrator = "mcp_orchestrator.main:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mcp_gateway"]
+packages = ["src/mcp_orchestrator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

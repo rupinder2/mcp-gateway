@@ -2,13 +2,13 @@
 
 import pytest
 from pydantic import ValidationError
-from mcp_gateway.models import (
+from mcp_orchestrator.models import (
     AuthConfig,
     ServerRegistration,
     ServerInfo,
     ToolReference,
     ToolSearchRequest,
-    GatewayConfig,
+    OrchestratorConfig,
 )
 
 
@@ -122,9 +122,9 @@ def test_tool_search_request_query_length():
         ToolSearchRequest(query="a" * 201)
 
 
-def test_gateway_config_defaults():
-    """Test GatewayConfig default values."""
-    config = GatewayConfig()
+def test_orchestrator_config_defaults():
+    """Test OrchestratorConfig default values."""
+    config = OrchestratorConfig()
     
     assert config.storage_backend == "memory"
     assert config.tool_cache_ttl == 300

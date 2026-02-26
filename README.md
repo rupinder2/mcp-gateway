@@ -1,9 +1,11 @@
-# MCP Orchestration Gateway
+# MCP Orchestrator
 
-[![PyPI Version](https://img.shields.io/pypi/v/mcp-orchestration-gateway.svg)](https://pypi.org/project/mcp-orchestration-gateway/)
-[![Python Version](https://img.shields.io/pypi/pyversions/mcp-orchestration-gateway)](https://pypi.org/project/mcp-orchestration-gateway/)
+<!-- mcp-name: io.github.rupinder2/mcp-orchestrator -->
+
+[![PyPI Version](https://img.shields.io/pypi/v/mcp-orchestrator.svg)](https://pypi.org/project/mcp-orchestrator/)
+[![Python Version](https://img.shields.io/pypi/pyversions/mcp-orchestrator)](https://pypi.org/project/mcp-orchestrator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/rupinder2/mcp-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/rupinder2/mcp-gateway/actions)
+[![Tests](https://github.com/rupinder2/mcp-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/rupinder2/mcp-orchestrator/actions)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-blue.svg)](CONTRIBUTING.md)
 
 A central hub that connects to multiple downstream MCP servers, aggregates their tools, and provides unified access with powerful tool search capabilities.
@@ -25,31 +27,23 @@ A central hub that connects to multiple downstream MCP servers, aggregates their
 ### Installation
 
 ```bash
-pip install -e .
+pip install mcp-orchestrator
 ```
 
 ### Running the MCP Server
 
-First, activate the virtual environment:
-
-```bash
-source .venv/bin/activate
-```
-
-Then run the server:
-
 ```bash
 # Run as stdio MCP server (for Claude Desktop, Cursor, etc.)
-mcp-orchestration-gateway
+mcp-orchestrator
 
 # Or run with Python directly
-python -m mcp_gateway.main
+python -m mcp_orchestrator.main
 ```
 
 **HTTP Transport:**
 
 ```bash
-GATEWAY_TRANSPORT=http GATEWAY_PORT=8080 python -m mcp_gateway.main
+ORCHESTRATOR_TRANSPORT=http ORCHESTRATOR_PORT=8080 python -m mcp_orchestrator.main
 ```
 
 This starts the server on `http://localhost:8080/mcp` with CORS enabled.
@@ -83,7 +77,7 @@ Add downstream MCP servers in `server_config.json`:
 
 ### Searching for Tools
 
-The gateway provides unified tool search (BM25 by default, regex optional):
+The orchestrator provides unified tool search (BM25 by default, regex optional):
 
 ```python
 # BM25 search (default - natural language)
@@ -104,7 +98,7 @@ results = await mcp_client.call_tool("tool_search", {
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              MCP Orchestration Gateway               │
+│                  MCP Orchestrator                    │
 │                                                      │
 │  ┌──────────────────────────────────────────────┐   │
 │  │              FastMCP Server                   │   │
@@ -135,14 +129,14 @@ results = await mcp_client.call_tool("tool_search", {
 |----------|---------|-------------|
 | `STORAGE_BACKEND` | `memory` | Storage backend (`memory` or `redis`) |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL |
-| `MCP_GATEWAY_TOOL_CACHE_TTL` | `300` | Tool schema cache TTL in seconds |
-| `MCP_GATEWAY_DEFAULT_CONNECTION_MODE` | `stateless` | Default connection mode |
-| `MCP_GATEWAY_CONNECTION_TIMEOUT` | `30.0` | Connection timeout in seconds |
-| `MCP_GATEWAY_MAX_RETRIES` | `3` | Maximum retry attempts |
-| `GATEWAY_TRANSPORT` | `stdio` | MCP transport (`stdio` or `http`) |
-| `GATEWAY_PORT` | `8080` | Port for HTTP transport |
-| `GATEWAY_HOST` | `0.0.0.0` | Host for HTTP transport |
-| `GATEWAY_LOG_LEVEL` | `INFO` | Logging level |
+| `MCP_ORCHESTRATOR_TOOL_CACHE_TTL` | `300` | Tool schema cache TTL in seconds |
+| `MCP_ORCHESTRATOR_DEFAULT_CONNECTION_MODE` | `stateless` | Default connection mode |
+| `MCP_ORCHESTRATOR_CONNECTION_TIMEOUT` | `30.0` | Connection timeout in seconds |
+| `MCP_ORCHESTRATOR_MAX_RETRIES` | `3` | Maximum retry attempts |
+| `ORCHESTRATOR_TRANSPORT` | `stdio` | MCP transport (`stdio` or `http`) |
+| `ORCHESTRATOR_PORT` | `8080` | Port for HTTP transport |
+| `ORCHESTRATOR_HOST` | `0.0.0.0` | Host for HTTP transport |
+| `ORCHESTRATOR_LOG_LEVEL` | `INFO` | Logging level |
 | `SERVER_CONFIG_PATH` | `server_config.json` | Path to server configuration file |
 
 ### Claude Desktop Integration
@@ -152,11 +146,11 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```json
 {
   "mcpServers": {
-    "mcp-orchestration-gateway": {
-      "command": "mcp-orchestration-gateway",
+    "mcp-orchestrator": {
+      "command": "mcp-orchestrator",
       "env": {
         "STORAGE_BACKEND": "memory",
-        "GATEWAY_LOG_LEVEL": "INFO"
+        "ORCHESTRATOR_LOG_LEVEL": "INFO"
       }
     }
   }
@@ -177,7 +171,7 @@ async def tool_search(
     use_regex: bool = False,
 ) -> dict:
     """Search for tools using BM25 or regex.
-    
+
     By default uses BM25 natural language search. Set use_regex=True
     to search using Python regex patterns instead.
     """
@@ -193,7 +187,7 @@ async def discover_tools(
     server_name: str,
 ) -> dict:
     """Discover tools from a registered server and index them for search.
-    
+
     Returns the list of discovered tools with their schemas.
     """
 ```
@@ -210,7 +204,7 @@ async def call_remote_tool(
     auth_header: Optional[str] = None,
 ) -> Any:
     """Call a tool on a downstream server.
-    
+
     Args:
         tool_name: Namespaced tool name (server_name__tool_name)
         arguments: Tool arguments
@@ -247,14 +241,14 @@ uv run pytest
 Run with coverage:
 
 ```bash
-uv run pytest --cov=mcp_gateway
+uv run pytest --cov=mcp_orchestrator
 ```
 
 ## Project Structure
 
 ```
-mcp-gateway/
-├── src/mcp_gateway/
+mcp-orchestrator/
+├── src/mcp_orchestrator/
 │   ├── __init__.py
 │   ├── main.py              # Entry point
 │   ├── models.py            # Pydantic models
